@@ -90,4 +90,16 @@ public class BeerDTO {
         this.type = type;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BeerDTO)) return false;
+        BeerDTO beerDTO = (BeerDTO) o;
+        return getId().equals(beerDTO.getId()) && getName().equals(beerDTO.getName()) && getBrand().equals(beerDTO.getBrand()) && getMax().equals(beerDTO.getMax()) && getQuantity().equals(beerDTO.getQuantity()) && getType() == beerDTO.getType();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getName(), getBrand(), getMax(), getQuantity(), getType());
+    }
 }

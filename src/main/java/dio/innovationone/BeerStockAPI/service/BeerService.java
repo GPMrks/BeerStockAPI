@@ -10,9 +10,7 @@ import dio.innovationone.BeerStockAPI.repository.BeerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -40,7 +38,7 @@ public class BeerService {
         return beerMapper.toDTO(foundBeer);
     }
 
-    public List<BeerDTO> listAll(){
+    public List<BeerDTO> listAll() {
         return beerRepository.findAll()
                 .stream()
                 .map(beerMapper::toDTO)
@@ -55,7 +53,7 @@ public class BeerService {
     public BeerDTO increment(Long id, int quantityToIncrement) throws BeerNotFoundException, BeerStockExceededException {
         Beer beerToIncrementStock = verifyIfExists(id);
         int quantityAfterIncrement = quantityToIncrement + beerToIncrementStock.getQuantity();
-        if(quantityAfterIncrement <= beerToIncrementStock.getMax()){
+        if (quantityAfterIncrement <= beerToIncrementStock.getMax()) {
             beerToIncrementStock.setQuantity(beerToIncrementStock.getQuantity() + quantityToIncrement);
             Beer incrementedBeerStock = beerRepository.save(beerToIncrementStock);
             return beerMapper.toDTO(incrementedBeerStock);
@@ -65,7 +63,7 @@ public class BeerService {
 
     private void verifyIfIsAlreadyRegistered(String name) throws BeerAlreadyRegisteredException {
         Optional<Beer> optionalBeer = beerRepository.findByName(name);
-        if(optionalBeer.isPresent()){
+        if (optionalBeer.isPresent()) {
             throw new BeerAlreadyRegisteredException(name);
         }
     }

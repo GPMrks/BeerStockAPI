@@ -4,6 +4,7 @@ import lombok.Builder;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 @Builder
 public class QuantityDTO {
@@ -25,5 +26,18 @@ public class QuantityDTO {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof QuantityDTO)) return false;
+        QuantityDTO that = (QuantityDTO) o;
+        return getQuantity().equals(that.getQuantity());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getQuantity());
     }
 }

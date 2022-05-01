@@ -2,6 +2,10 @@ package dio.innovationone.BeerStockAPI.controller;
 
 import dio.innovationone.BeerStockAPI.builder.BeerDTOBuilder;
 import dio.innovationone.BeerStockAPI.dto.BeerDTO;
+import dio.innovationone.BeerStockAPI.entity.Beer;
+import dio.innovationone.BeerStockAPI.exception.BeerNotFoundException;
+import dio.innovationone.BeerStockAPI.mapper.BeerMapper;
+import dio.innovationone.BeerStockAPI.repository.BeerRepository;
 import dio.innovationone.BeerStockAPI.service.BeerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,10 +19,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
-import static dio.innovationone.BeerStockAPI.utils.JsonConvertionUtils.asJsonString;
+import static dio.innovationone.BeerStockAPI.utils.JsonConversionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,19 +56,19 @@ public class BeerControllerTest {
     @Test
     void whenPostIsCalledThenABeerIsCreated() throws Exception {
         //given
-        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
 
         //when
-        lenient().when(beerService.createBeer(beerDTO)).thenReturn(beerDTO);
+        when(beerService.createBeer(expectedBeerDTO)).thenReturn(expectedBeerDTO);
 
         //then
         mockMvc.perform(post(BEER_API_URL_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(beerDTO)))
+                        .content(asJsonString(expectedBeerDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name", is(beerDTO.getName())))
-                .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
-                .andExpect(jsonPath("$.type", is(beerDTO.getType().toString())));
+                .andExpect(jsonPath("$.name", is(expectedBeerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(expectedBeerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(expectedBeerDTO.getType().toString())));
     }
 
     @Test
@@ -78,5 +83,38 @@ public class BeerControllerTest {
                         .content(asJsonString(beerDTO)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void whenGETIsCalledWithValidNameThenOKStatusIsReturned() throws Exception {
+        //given
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        //when
+        when(beerService.findByName(beerDTO.getName())).thenReturn(beerDTO);
+
+        //then
+        mockMvc.perform(get(BEER_API_URL_PATH + "/" + beerDTO.getName())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(beerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(beerDTO.getType().toString())));
+    }
+
+    @Test
+    void whenGetIsCalledWithoutRegisteredNameThenNotFoundIsThrown() throws Exception {
+        //given
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        //when
+        when(beerService.findByName(beerDTO.getName())).thenThrow(BeerNotFoundException.class);
+
+        //then
+        mockMvc.perform(get(BEER_API_URL_PATH + "/" + beerDTO.getName())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+
 
 }

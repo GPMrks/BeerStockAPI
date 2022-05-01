@@ -3,6 +3,7 @@ package dio.innovationone.BeerStockAPI.entity;
 import dio.innovationone.BeerStockAPI.enums.BeerType;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 public class Beer {
@@ -83,4 +84,16 @@ public class Beer {
         this.type = type;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Beer)) return false;
+        Beer beer = (Beer) o;
+        return getMax() == beer.getMax() && getQuantity() == beer.getQuantity() && getId().equals(beer.getId()) && getName().equals(beer.getName()) && getBrand().equals(beer.getBrand()) && getType() == beer.getType();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getName(), getBrand(), getMax(), getQuantity(), getType());
+    }
 }
