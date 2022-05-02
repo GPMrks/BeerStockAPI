@@ -23,10 +23,8 @@ import java.util.Collections;
 
 import static dio.innovationone.BeerStockAPI.utils.JsonConversionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,7 +54,7 @@ public class BeerControllerTest {
     }
 
     @Test
-    void whenPostIsCalledThenABeerIsCreated() throws Exception {
+    void whenPOSTIsCalledThenABeerIsCreated() throws Exception {
         //given
         BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
 
@@ -74,7 +72,7 @@ public class BeerControllerTest {
     }
 
     @Test
-    void whenPostIsCalledWithoutRequiredFieldThenAnErrorIsThrown() throws Exception {
+    void whenPOSTIsCalledWithoutRequiredFieldThenAnErrorIsThrown() throws Exception {
         //given
         BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
         beerDTO.setBrand(null);
@@ -104,7 +102,7 @@ public class BeerControllerTest {
     }
 
     @Test
-    void whenGetIsCalledWithoutRegisteredNameThenNotFoundIsThrown() throws Exception {
+    void whenGETIsCalledWithoutRegisteredNameThenNotFoundIsThrown() throws Exception {
         //given
         BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
 
@@ -143,6 +141,31 @@ public class BeerControllerTest {
         mockMvc.perform(get(BEER_API_URL_PATH)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenDELETEIsCalledWithValidIDThenNoContentStatusIsReturned() throws Exception {
+        //given
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        //when
+        doNothing().when(beerService).deteleBeer(beerDTO.getId());
+
+        //then
+        mockMvc.perform(delete(BEER_API_URL_PATH + "/" + beerDTO.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenDELETEIsCalledWithInvalidIDThenNotFoundStatusIsReturned() throws Exception {
+        //when
+        doThrow(BeerNotFoundException.class).when(beerService).deteleBeer(INVALID_BEER_ID);
+
+        //then
+        mockMvc.perform(delete(BEER_API_URL_PATH + "/" + INVALID_BEER_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
 
