@@ -6,6 +6,7 @@ import dio.innovationone.BeerStockAPI.exception.BeerAlreadyRegisteredException;
 import dio.innovationone.BeerStockAPI.exception.BeerNotFoundException;
 import dio.innovationone.BeerStockAPI.exception.BeerStockExceededException;
 import dio.innovationone.BeerStockAPI.service.BeerService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

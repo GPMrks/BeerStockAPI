@@ -2,10 +2,9 @@ package dio.innovationone.BeerStockAPI.controller;
 
 import dio.innovationone.BeerStockAPI.builder.BeerDTOBuilder;
 import dio.innovationone.BeerStockAPI.dto.BeerDTO;
-import dio.innovationone.BeerStockAPI.entity.Beer;
+import dio.innovationone.BeerStockAPI.dto.QuantityDTO;
 import dio.innovationone.BeerStockAPI.exception.BeerNotFoundException;
-import dio.innovationone.BeerStockAPI.mapper.BeerMapper;
-import dio.innovationone.BeerStockAPI.repository.BeerRepository;
+import dio.innovationone.BeerStockAPI.exception.BeerStockExceededException;
 import dio.innovationone.BeerStockAPI.service.BeerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +93,7 @@ public class BeerControllerTest {
 
         //then
         mockMvc.perform(get(BEER_API_URL_PATH + "/" + beerDTO.getName())
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is(beerDTO.getName())))
                 .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
@@ -168,5 +167,44 @@ public class BeerControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void whenPATCHIsCalledToIncrementDiscountThenOKStatusIsReturned() throws Exception {
+        //given
+        QuantityDTO quantityDTO = QuantityDTO.builder().quantity(10).build();
+
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        beerDTO.setQuantity(beerDTO.getQuantity() + quantityDTO.getQuantity());
+
+        //when
+        when(beerService.increment(VALID_BEER_ID, quantityDTO.getQuantity())).thenReturn(beerDTO);
+
+        //then
+        mockMvc.perform(patch(BEER_API_URL_PATH + "/" + VALID_BEER_ID + BEER_API_SUBPATH_INCREMENT_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(quantityDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(beerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(beerDTO.getType().toString())))
+                .andExpect(jsonPath("$.quantity", is(beerDTO.getQuantity())));
+
+    }
+
+    @Test
+    void whenPATCHIsCalledToIncrementMoreThanMaxThenBadRequestStatusIsReturned() throws Exception {
+        //given
+        QuantityDTO quantityDTO = QuantityDTO.builder().quantity(30).build();
+
+        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        beerDTO.setQuantity(beerDTO.getQuantity() + quantityDTO.getQuantity());
+
+        //when
+        when(beerService.increment(VALID_BEER_ID, quantityDTO.getQuantity())).thenThrow(BeerStockExceededException.class);
+
+        //then
+        mockMvc.perform(patch(BEER_API_URL_PATH + "/" + VALID_BEER_ID + BEER_API_SUBPATH_INCREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isBadRequest());
+    }
 
 }
